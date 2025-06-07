@@ -47,11 +47,16 @@ class ResidualBlock(nn.Module):
 
 
 class SRResNet(nn.Module):
-    def __init__(self, input_channels=3, feature_dim=64, num_residual_blocks=16):
+    def __init__(self, input_channels=3, feature_dim=64, num_residual_blocks=16, duc_weights=None):
         super(SRResNet, self).__init__()
         
         # Initial convolution
-        self.conv_input = nn.Conv2d(input_channels, feature_dim, kernel_size=3, padding=1)
+        if duc_weights is not None:
+            self.conv_input = nn.Conv2d(input_channels, feature_dim, kernel_size=(7,7), padding=(3,3), bias=False)
+            self.conv_input.weight.data = torch.tensor(duc_weights, dtype=torch.float32)
+            self.conv_input.weight.requires_grad = False
+        else:
+            self.conv_input = nn.Conv2d(input_channels, feature_dim, kernel_size=3, padding=1)
         self.prelu_input = nn.PReLU()
         
         # Residual blocks

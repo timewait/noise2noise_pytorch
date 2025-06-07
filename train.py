@@ -161,6 +161,15 @@ def main():
     # Create model
     print(f"Creating {args.model} model...")
     model = get_model(args.model)
+    if "duc" in args.source_noise_model:
+        tokens = args.source_noise_model.split(",")
+        if len(tokens) > 2 and tokens[2] == "w":
+            weights = np.load("../duc/output/demo/resnet50_layer_weight.npy")
+            model = get_model(args.model, duc_weights=weights)
+        else:
+            model = get_model(args.model)
+    else:
+        model = get_model(args.model)
     model.to(device)
     
     # Print model info
