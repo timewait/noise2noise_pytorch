@@ -3,6 +3,10 @@ import string
 import random
 import numpy as np
 import cv2
+from duc.registry import get_extractor, get_injector
+from duc.core     import NullSpaceBuilder
+from duc.injectors import VisionInjector
+import torch
 
 
 def get_noise_model(noise_type="gaussian,0,50"):
@@ -61,8 +65,16 @@ def get_noise_model(noise_type="gaussian,0,50"):
             return img.astype(np.uint8)
         return add_impulse_noise
     elif tokens[0] == "duc":
-        
-        pass
+        #Conv2d(3, 64, kernel_size=(7, 7), stride=(2, 2), padding=(3, 3), bias=False)
+        sigma = float(tokens[1]) if len(tokens) > 1 else None
+        injector_cls=VisionInjector(kernel_size=(7, 7), stride=(2, 2), padding=(3, 3), dilation=(1,1), sigma=sigma)
+        V0 = np.load("../duc/output/demo/resnet50_V0.npy")
+        V0 = torch.from_numpy(V0).float()
+        def duc_noise(x):
+            x = torch.from_numpy(x).permute(2, 0, 1).unsqueeze(0).float() / 255.0
+            y = injector_cls.inject(x, V0, 10) 
+            return y.squeeze_(0).permute(1, 2, 0).numpy() * 255.0
+        return duc_noise
     else:
         raise ValueError("noise_type should be 'gaussian', 'clean', 'text', or 'impulse'")
 
