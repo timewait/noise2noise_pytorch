@@ -13,7 +13,7 @@ def get_noise_model(noise_type="gaussian,0,50"):
         max_stddev = int(tokens[2])
 
         def gaussian_noise(img):
-            noise_img = img.astype(np.float)
+            noise_img = img.astype(np.float64)
             stddev = np.random.uniform(min_stddev, max_stddev)
             noise = np.random.randn(*img.shape) * stddev
             noise_img += noise
@@ -60,6 +60,9 @@ def get_noise_model(noise_type="gaussian,0,50"):
             img = img * (1 - mask) + noise * mask
             return img.astype(np.uint8)
         return add_impulse_noise
+    elif tokens[0] == "duc":
+        
+        pass
     else:
         raise ValueError("noise_type should be 'gaussian', 'clean', 'text', or 'impulse'")
 
